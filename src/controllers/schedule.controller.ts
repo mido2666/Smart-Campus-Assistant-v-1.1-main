@@ -103,16 +103,19 @@ export class ScheduleController {
         }
       });
 
-      const courseIds = enrollments.map(e => e.courseId);
+      console.log(`[DEBUG] User ${userId} enrollments:`, enrollments.length);
+
+      const courseIds = enrollments.map((e: any) => e.courseId);
 
       if (courseIds.length === 0) {
+        console.log(`[DEBUG] No active enrollments for user ${userId}`);
         return res.json({
           success: true,
           data: []
         });
       }
 
-      const schedules = await prisma.schedule.findMany({
+      const allSchedules = await prisma.schedule.findMany({
         where: {
           courseId: { in: courseIds },
           isActive: true
@@ -142,7 +145,9 @@ export class ScheduleController {
         ]
       });
 
-      const formattedSchedules = schedules.map(schedule => ({
+      console.log(`[DEBUG] Found ${allSchedules.length} schedules for user ${userId}`);
+
+      const formattedSchedules = allSchedules.map((schedule: any) => ({
         id: schedule.id,
         courseId: schedule.courseId,
         courseCode: schedule.course.courseCode,
@@ -154,7 +159,8 @@ export class ScheduleController {
         professorId: schedule.professorId,
         professorFirstName: schedule.professor.firstName,
         professorLastName: schedule.professor.lastName,
-        professorName: schedule.professor.name
+        professorName: schedule.professor.name,
+        type: 'Lecture' // Default type
       }));
 
       res.json({

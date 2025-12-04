@@ -79,6 +79,13 @@ router.get('/', ScheduleController.getAllSchedules);
 router.get('/user', ScheduleController.getUserSchedule);
 
 /**
+ * @route   GET /api/schedule/debug
+ * @desc    Get debug info for schedule
+ * @access  Authenticated users
+ */
+router.get('/debug', ScheduleController.debugSchedule);
+
+/**
  * @route   GET /api/schedule/today
  * @desc    Get today's schedule for the authenticated user
  * @access  Authenticated users

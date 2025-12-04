@@ -24,11 +24,25 @@ export default function Schedule() {
   const [searchTerm, setSearchTerm] = useState('');
   const { success, info } = useToast();
 
+  // Debug: Check database content directly
+  useEffect(() => {
+    const checkDebugData = async () => {
+      try {
+        const res = await apiClient.get('/schedule/debug');
+        console.log('🔍 [DEBUG ENDPOINT] Database Content:', res.data);
+      } catch (err) {
+        console.error('❌ [DEBUG ENDPOINT] Failed to fetch debug info:', err);
+      }
+    };
+    checkDebugData();
+  }, []);
+
   // Fetch schedule data
   const { data: classes = [], isLoading: loading, error, refetch } = useQuery({
     queryKey: ['student-schedule', user?.id],
     queryFn: async () => {
       const response = await apiClient.get('/schedule/user');
+      console.log('Schedule API Response:', response); // Debug logging
 
       if (response.success && response.data) {
         // Map backend data to frontend ScheduleClass format
