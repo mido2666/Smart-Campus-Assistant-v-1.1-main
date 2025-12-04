@@ -1,0 +1,105 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2025-11-21T21:51:01.441Z",
+    "end": "2025-11-21T21:51:04.681Z",
+    "duration": 3240,
+    "testsRegistered": 1,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "292782a1-f941-4499-b452-3b65a58961d8",
+      "title": "",
+      "fullFile": "cypress\\e2e\\minimal-accessibility.cy.ts",
+      "file": "cypress\\e2e\\minimal-accessibility.cy.ts",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "fef715b0-00d9-4e28-b486-2736e671f7c8",
+          "title": "Minimal Accessibility Test",
+          "fullFile": "",
+          "file": "",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should pass a minimal accessibility check on the home page",
+              "fullTitle": "Minimal Accessibility Test should pass a minimal accessibility check on the home page",
+              "timedOut": null,
+              "duration": 3216,
+              "state": "passed",
+              "speed": "fast",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "cy.visit('/');\ncy.injectAxe();\n// cy.checkA11y();",
+              "err": {},
+              "uuid": "7adeef8e-638e-4aae-958e-7b979af3d21c",
+              "parentUUID": "fef715b0-00d9-4e28-b486-2736e671f7c8",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "7adeef8e-638e-4aae-958e-7b979af3d21c"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 3216,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 2000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "7.2.0"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": false,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "cypress/results",
+        "overwrite": false,
+        "html": false,
+        "json": true
+      },
+      "version": "6.3.2"
+    }
+  }
+}

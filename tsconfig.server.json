@@ -1,0 +1,38 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "noEmit": false,
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "target": "ESNext",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ]
+  },
+  "ts-node": {
+    "esm": true,
+    "compilerOptions": {
+      "module": "ESNext",
+      "moduleResolution": "bundler"
+    }
+  },
+  "include": [
+    "server/**/*",
+    "config/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "config/frontend-env.ts",
+    "config/upstash.ts",
+    "config/database-example.ts"
+  ]
+}

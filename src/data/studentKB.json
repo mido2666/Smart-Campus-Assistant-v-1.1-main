@@ -1,0 +1,146 @@
+[
+  {
+    "id": "s1",
+    "question": "my schedule|my classes|my timetable|جدولي|محاضراتي|مواعيدي",
+    "answer": "I can help you with your schedule! Check the schedule section in your dashboard to see all your classes, times, and locations. You can also view your weekly and daily schedules there.",
+    "category": "student_schedule",
+    "language": "en",
+    "tags": ["schedule", "classes", "timetable"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s1_ar",
+    "question": "my schedule|my classes|my timetable|جدولي|محاضراتي|مواعيدي",
+    "answer": "يمكنني مساعدتك في جدولك! تحقق من قسم الجدول في لوحة التحكم لرؤية جميع محاضراتك وأوقاتها ومواقعها. يمكنك أيضاً عرض جداولك الأسبوعية واليومية هناك.",
+    "category": "student_schedule",
+    "language": "ar",
+    "tags": ["schedule", "classes", "timetable"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s2",
+    "question": "my attendance|attendance record|حضوري|سجل الحضور|نسبة الحضور",
+    "answer": "I can help you check your attendance! Go to the attendance section to see your attendance record, percentage, and any absences. You can also scan QR codes to mark your attendance.",
+    "category": "student_attendance",
+    "language": "en",
+    "tags": ["attendance", "record", "percentage"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s2_ar",
+    "question": "my attendance|attendance record|حضوري|سجل الحضور|نسبة الحضور",
+    "answer": "يمكنني مساعدتك في التحقق من حضورك! اذهب إلى قسم الحضور لرؤية سجل حضورك ونسبتك وأي غيابات. يمكنك أيضاً مسح رموز QR لتسجيل حضورك.",
+    "category": "student_attendance",
+    "language": "ar",
+    "tags": ["attendance", "record", "percentage"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s3",
+    "question": "my grades|my marks|my results|درجاتي|علاماتي|نتائجي",
+    "answer": "I can help you check your grades! Visit the academic summary section to see your current grades, GPA, and performance in all your courses.",
+    "category": "student_grades",
+    "language": "en",
+    "tags": ["grades", "marks", "results", "GPA"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s3_ar",
+    "question": "my grades|my marks|my results|درجاتي|علاماتي|نتائجي",
+    "answer": "يمكنني مساعدتك في التحقق من درجاتك! زر قسم الملخص الأكاديمي لرؤية درجاتك الحالية والمعدل التراكمي وأدائك في جميع موادك.",
+    "category": "student_grades",
+    "language": "ar",
+    "tags": ["grades", "marks", "results", "GPA"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s4",
+    "question": "my assignments|my homework|my projects|واجباتي|مشاريعي|مهامي",
+    "answer": "I can help you with your assignments! Check the assignments section to see all your current tasks, due dates, and submission status. You can also submit assignments there.",
+    "category": "student_assignments",
+    "language": "en",
+    "tags": ["assignments", "homework", "projects", "tasks"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s4_ar",
+    "question": "my assignments|my homework|my projects|واجباتي|مشاريعي|مهامي",
+    "answer": "يمكنني مساعدتك في واجباتك! تحقق من قسم الواجبات لرؤية جميع مهامك الحالية ومواعيد التسليم وحالة التقديم. يمكنك أيضاً تقديم الواجبات هناك.",
+    "category": "student_assignments",
+    "language": "ar",
+    "tags": ["assignments", "homework", "projects", "tasks"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s5",
+    "question": "my courses|my subjects|my classes|موادي|موضوعاتي|صفوفي",
+    "answer": "I can help you with your courses! Check the courses section to see all your enrolled courses, professors, schedules, and course materials.",
+    "category": "student_courses",
+    "language": "en",
+    "tags": ["courses", "subjects", "classes", "enrolled"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s5_ar",
+    "question": "my courses|my subjects|my classes|موادي|موضوعاتي|صفوفي",
+    "answer": "يمكنني مساعدتك في موادك! تحقق من قسم المواد لرؤية جميع المواد المسجلة والأساتذة والجداول ومواد المادة.",
+    "category": "student_courses",
+    "language": "ar",
+    "tags": ["courses", "subjects", "classes", "enrolled"],
+    "confidence": 0.95
+  },
+  {
+    "id": "s6",
+    "question": "my profile|my information|my details|ملفي|معلوماتي|تفاصيلي",
+    "answer": "I can help you with your profile! Go to the profile section to view and update your personal information, contact details, and academic records.",
+    "category": "student_profile",
+    "language": "en",
+    "tags": ["profile", "information", "details", "personal"],
+    "confidence": 0.9
+  },
+  {
+    "id": "s6_ar",
+    "question": "my profile|my information|my details|ملفي|معلوماتي|تفاصيلي",
+    "answer": "يمكنني مساعدتك في ملفك الشخصي! اذهب إلى قسم الملف الشخصي لعرض وتحديث معلوماتك الشخصية وتفاصيل الاتصال والسجلات الأكاديمية.",
+    "category": "student_profile",
+    "language": "ar",
+    "tags": ["profile", "information", "details", "personal"],
+    "confidence": 0.9
+  },
+  {
+    "id": "s7",
+    "question": "notifications|alerts|announcements|إشعارات|تنبيهات|إعلانات",
+    "answer": "I can help you with notifications! Check the notifications section to see all your alerts, announcements, and important updates from your professors and the university.",
+    "category": "student_notifications",
+    "language": "en",
+    "tags": ["notifications", "alerts", "announcements", "updates"],
+    "confidence": 0.9
+  },
+  {
+    "id": "s7_ar",
+    "question": "notifications|alerts|announcements|إشعارات|تنبيهات|إعلانات",
+    "answer": "يمكنني مساعدتك في الإشعارات! تحقق من قسم الإشعارات لرؤية جميع تنبيهاتك وإعلاناتك والتحديثات المهمة من أساتذتك والجامعة.",
+    "category": "student_notifications",
+    "language": "ar",
+    "tags": ["notifications", "alerts", "announcements", "updates"],
+    "confidence": 0.9
+  },
+  {
+    "id": "s8",
+    "question": "how to scan QR|QR code|scan attendance|مسح QR|رمز QR|تسجيل الحضور",
+    "answer": "I can help you with QR code scanning! Use the 'Scan QR' button in the attendance section to mark your attendance. Make sure you're in the correct classroom and the QR code is visible.",
+    "category": "student_qr",
+    "language": "en",
+    "tags": ["QR", "scan", "attendance", "mark"],
+    "confidence": 0.9
+  },
+  {
+    "id": "s8_ar",
+    "question": "how to scan QR|QR code|scan attendance|مسح QR|رمز QR|تسجيل الحضور",
+    "answer": "يمكنني مساعدتك في مسح رمز QR! استخدم زر 'مسح QR' في قسم الحضور لتسجيل حضورك. تأكد من أنك في القاعة الصحيحة وأن رمز QR مرئي.",
+    "category": "student_qr",
+    "language": "ar",
+    "tags": ["QR", "scan", "attendance", "mark"],
+    "confidence": 0.9
+  }
+]
