@@ -24,14 +24,18 @@ export default function Schedule() {
   const [searchTerm, setSearchTerm] = useState('');
   const { success, info } = useToast();
 
+  const [debugData, setDebugData] = useState<any>(null);
+
   // Debug: Check database content directly
   useEffect(() => {
     const checkDebugData = async () => {
       try {
         const res = await apiClient.get('/schedule/debug');
         console.log('🔍 [DEBUG ENDPOINT] Database Content:', res.data);
+        setDebugData(res.data);
       } catch (err) {
         console.error('❌ [DEBUG ENDPOINT] Failed to fetch debug info:', err);
+        setDebugData({ error: 'Failed to fetch debug info' });
       }
     };
     checkDebugData();
@@ -330,35 +334,87 @@ export default function Schedule() {
         {/* Content */}
         {!loading && !error && (
           <>
-            {/* Stats Section */}
-            <section>
-              <ScheduleStats classes={classes} currentDay={currentDay} />
-            </section>
+            {classes.length === 0 ? (
+              <div className="space-y-8">
+                <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CalendarDays className="w-10 h-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Classes Scheduled</h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                    You don't have any classes scheduled for this semester yet, or there might be an issue retrieving your schedule.
+                  </p>
+                </div>
 
-            {/* Main Grid */}
-            <div className="grid lg:grid-cols-4 gap-6">
-              {/* Sidebar Filters */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-24">
-                  <FilterBar
-                    filters={filters}
-                    searchTerm={searchTerm}
-                    onFilterChange={setFilters}
-                    onSearchChange={setSearchTerm}
-                    onClearSearch={() => setSearchTerm('')}
-                  />
+                {/* Debug Info Section */}
+                <div className="p-6 border border-red-200 dark:border-red-900/30 rounded-2xl bg-red-50/50 dark:bg-red-900/10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <AlertCircle className="w-6 h-6 text-red-500" />
+                    <div>
+                      <h4 className="text-lg font-semibold text-red-700 dark:text-red-400">Debug Information</h4>
+                      <p className="text-sm text-red-600 dark:text-red-300">
+                        Please share this information with technical support.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300">User Info</h5>
+                      <pre className="bg-white dark:bg-gray-950 p-4 rounded-xl text-xs overflow-auto border border-gray-200 dark:border-gray-800 font-mono">
+                        {JSON.stringify(debugData?.user || {}, null, 2)}
+                      </pre>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300">Enrollments ({debugData?.enrollmentsCount || 0})</h5>
+                      <pre className="bg-white dark:bg-gray-950 p-4 rounded-xl text-xs overflow-auto border border-gray-200 dark:border-gray-800 font-mono max-h-60">
+                        {JSON.stringify(debugData?.enrollments || [], null, 2)}
+                      </pre>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300">All Schedules Found ({debugData?.schedulesCount || 0})</h5>
+                      <pre className="bg-white dark:bg-gray-950 p-4 rounded-xl text-xs overflow-auto border border-gray-200 dark:border-gray-800 font-mono max-h-80">
+                        {JSON.stringify(debugData?.schedules || [], null, 2)}
+                      </pre>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <>
+                {/* Stats Section */}
+                <section>
+                  <ScheduleStats classes={classes} currentDay={currentDay} />
+                </section>
 
-              {/* Schedule Table */}
-              <div className="lg:col-span-3">
-                <ScheduleTable
-                  classes={filteredClasses}
-                  currentDay={currentDay}
-                  nowIndicator={true}
-                />
-              </div>
-            </div>
+                {/* Main Grid */}
+                <div className="grid lg:grid-cols-4 gap-6">
+                  {/* Sidebar Filters */}
+                  <div className="lg:col-span-1">
+                    <div className="sticky top-24">
+                      <FilterBar
+                        filters={filters}
+                        searchTerm={searchTerm}
+                        onFilterChange={setFilters}
+                        onSearchChange={setSearchTerm}
+                        onClearSearch={() => setSearchTerm('')}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Schedule Table */}
+                  <div className="lg:col-span-3">
+                    <ScheduleTable
+                      classes={filteredClasses}
+                      currentDay={currentDay}
+                      nowIndicator={true}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
