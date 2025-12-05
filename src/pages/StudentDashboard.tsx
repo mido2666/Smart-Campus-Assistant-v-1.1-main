@@ -353,7 +353,7 @@ export default function StudentDashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-6 sm:space-y-8 pb-24" // Added pb-24 for chatbot space
+        className="space-y-6 sm:space-y-8 pb-32 sm:pb-24"
       >
         {/* Header Section */}
         <motion.div

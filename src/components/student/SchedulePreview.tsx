@@ -179,12 +179,12 @@ export default function SchedulePreview({ classes, loading = false, onRefresh }:
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Today's Lectures</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
                   {todayDate.english}
                 </p>
-                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-                <p className="text-xs text-gray-500 dark:text-gray-500 font-arabic" dir="rtl">
+                <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                <p className="text-xs text-gray-500 dark:text-gray-500 font-arabic whitespace-nowrap" dir="rtl">
                   {todayDate.arabic}
                 </p>
               </div>
