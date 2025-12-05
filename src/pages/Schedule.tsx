@@ -6,6 +6,7 @@ import DashboardLayout from '../components/common/DashboardLayout';
 import ScheduleStats from '../components/student/schedule/ScheduleStats';
 import ScheduleTable from '../components/student/schedule/ScheduleTable';
 import FilterBar from '../components/student/schedule/FilterBar';
+import { StatsSkeleton, TableSkeleton, Skeleton } from '../components/common/LoadingSkeleton';
 import {
   ScheduleClass,
   getCurrentDay,
@@ -296,9 +297,30 @@ export default function Schedule() {
 
         {/* Loading State */}
         {(loading || authLoading) && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-500 dark:text-gray-400 animate-pulse">Loading your schedule...</p>
+          <div className="space-y-8 animate-pulse">
+            {/* Stats Skeleton */}
+            <StatsSkeleton />
+
+            {/* Main Grid Skeleton */}
+            <div className="grid lg:grid-cols-4 gap-6">
+              {/* Sidebar Skeleton */}
+              <div className="lg:col-span-1">
+                <div className="bg-white dark:bg-cardDark rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+                  <Skeleton height="h-10" width="w-full" />
+                  <div className="space-y-3">
+                    <Skeleton height="h-4" width="w-20" />
+                    <Skeleton height="h-8" width="w-full" />
+                    <Skeleton height="h-8" width="w-full" />
+                    <Skeleton height="h-8" width="w-full" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Table Skeleton */}
+              <div className="lg:col-span-3">
+                <TableSkeleton rows={5} columns={5} />
+              </div>
+            </div>
           </div>
         )}
 
