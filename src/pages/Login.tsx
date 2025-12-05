@@ -530,29 +530,9 @@ export default function Login() {
           </motion.div>
 
           <div className="absolute bottom-4 left-0 right-0 text-center z-10">
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-xs text-gray-400 font-medium">
-                © 2025 Smart Campus Assistant. All rights reserved.
-              </p>
-              <button
-                onClick={async () => {
-                  if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (const registration of registrations) {
-                      await registration.unregister();
-                    }
-                  }
-                  if ('caches' in window) {
-                    const keys = await caches.keys();
-                    await Promise.all(keys.map(key => caches.delete(key)));
-                  }
-                  window.location.reload();
-                }}
-                className="text-[10px] text-blue-400 hover:text-blue-600 underline cursor-pointer"
-              >
-                Force Update (Clear Cache)
-              </button>
-            </div>
+            <p className="text-xs text-gray-400 font-medium">
+              © 2025 Smart Campus Assistant. All rights reserved.
+            </p>
           </div>
         </main>
       </div>

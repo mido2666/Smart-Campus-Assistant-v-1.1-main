@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Home, GraduationCap, Calendar, BookOpen, FileText, RefreshCw, Timer, Sparkles, LayoutDashboard } from 'lucide-react';
+import { Home, GraduationCap, Calendar, BookOpen, FileText, RefreshCw, Timer, Sparkles, LayoutDashboard, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AIAssistantButton } from '../components/common/AIAssistantButton';
 import DashboardLayout from '../components/common/DashboardLayout';
@@ -302,6 +302,20 @@ export default function StudentDashboard() {
     setIsRefreshing(false);
   };
 
+  const handleHardRefresh = async () => {
+    if (confirm("Update App? This will clear the cache and reload.")) {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) await registration.unregister();
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(key => caches.delete(key)));
+      }
+      window.location.reload();
+    }
+  };
+
   // Show welcome toast only once per session
   useEffect(() => {
     const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
@@ -390,6 +404,13 @@ export default function StudentDashboard() {
               title="Refresh Dashboard"
             >
               <RefreshCw className="w-5 h-5" />
+            </button>
+            <button
+              onClick={handleHardRefresh}
+              className="p-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 transition-all hover:shadow-md active:scale-95 group"
+              title="Force Update / Fix Issues"
+            >
+              <Zap className="w-5 h-5 fill-current group-hover:animate-pulse" />
             </button>
           </div>
         </motion.div>
