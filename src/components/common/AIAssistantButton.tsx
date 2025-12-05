@@ -201,7 +201,7 @@ export const AIAssistantButton: React.FC<AIAssistantButtonProps> = ({ userType }
     };
 
     return (
-        <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-4 pointer-events-none">
+        <div className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-50 flex flex-col items-end gap-4 pointer-events-none">
             {/* Chat Bubble Hint */}
             <AnimatePresence>
                 {isHovered && (
@@ -223,7 +223,7 @@ export const AIAssistantButton: React.FC<AIAssistantButtonProps> = ({ userType }
                 onClick={handleClick}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="relative pointer-events-auto w-24 h-24 focus:outline-none flex flex-col items-center justify-center"
+                className="relative pointer-events-auto w-24 h-24 focus:outline-none flex flex-col items-center justify-center scale-75 sm:scale-100 origin-bottom-right"
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
                 whileHover={{ scale: 1.1, rotate: -5 }}
