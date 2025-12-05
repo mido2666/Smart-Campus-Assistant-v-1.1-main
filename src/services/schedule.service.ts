@@ -285,7 +285,7 @@ export class ScheduleService {
       const schedules = await this.getAllSchedules(userId, undefined, undefined, true);
 
       // Transform to match the expected format
-      return schedules.map(schedule => ({
+      return schedules.map((schedule: any) => ({
         id: schedule.id,
         courseId: schedule.courseId,
         dayOfWeek: schedule.dayOfWeek,
