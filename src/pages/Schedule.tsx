@@ -28,7 +28,7 @@ export default function Schedule() {
 
 
   // Fetch schedule data
-  const { data: classes = [], isLoading: loading, error, refetch } = useQuery({
+  const { data: classes = [], isPending: loading, error, refetch } = useQuery({
     queryKey: ['student-schedule', user?.id],
     queryFn: async () => {
       const response = await apiClient.get('/schedule/user');
