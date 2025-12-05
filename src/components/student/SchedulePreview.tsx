@@ -54,6 +54,7 @@ const getTodayDate = () => {
   const arabicDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
   const englishDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const arabicMonths = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+  const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   const dayOfWeek = today.getDay();
   const day = today.getDate();
@@ -62,7 +63,7 @@ const getTodayDate = () => {
 
   return {
     arabic: `${arabicDays[dayOfWeek]}، ${day} ${arabicMonths[month]} ${year}`,
-    english: `${englishDays[dayOfWeek]}, ${day} ${arabicMonths[month]} ${year}`
+    english: `${englishDays[dayOfWeek]}, ${day} ${englishMonths[month]} ${year}`
   };
 };
 

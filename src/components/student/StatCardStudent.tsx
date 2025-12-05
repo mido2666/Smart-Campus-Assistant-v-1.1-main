@@ -45,7 +45,7 @@ export default function StatCardStudent({
             )}
           </div>
         </div>
-        <div className={`p-3.5 rounded-xl ${color} shadow-lg group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/50 dark:ring-gray-800/50`}>
+        <div className={`p-3.5 rounded-xl ${color} shadow-lg group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/50 dark:ring-gray-800/50 shrink-0`}>
           <Icon className="w-6 h-6" strokeWidth={2} />
         </div>
       </div>

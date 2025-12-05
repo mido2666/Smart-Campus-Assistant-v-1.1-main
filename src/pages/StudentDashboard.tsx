@@ -353,27 +353,27 @@ export default function StudentDashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-6 sm:space-y-8"
+        className="space-y-6 sm:space-y-8 pb-24" // Added pb-24 for chatbot space
       >
         {/* Header Section */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          className="flex flex-row items-center justify-between gap-4" // Changed to flex-row for mobile
         >
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20"
+              className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0"
             >
-              <LayoutDashboard className="w-8 h-8 text-white" />
+              <LayoutDashboard className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
                 Dashboard
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
                 Welcome back, {user?.firstName} 👋
               </p>
             </div>
