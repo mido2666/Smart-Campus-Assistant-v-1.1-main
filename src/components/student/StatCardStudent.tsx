@@ -28,7 +28,7 @@ export default function StatCardStudent({
         y: -5,
         transition: { duration: 0.2 }
       }}
-      className="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/30 p-4 sm:p-6 group"
+      className="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/30 p-3 sm:p-6 group"
       tabIndex={0}
       role="article"
       aria-label={`${title}: ${value}${subtitle ? ` ${subtitle}` : ''}`}
@@ -39,14 +39,14 @@ export default function StatCardStudent({
         <div className="flex-1">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 tracking-wide uppercase">{title}</h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</span>
+            <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</span>
             {subtitle && (
-              <span className="text-xs font-medium text-gray-400 dark:text-gray-500">{subtitle}</span>
+              <span className="text-[10px] sm:text-xs font-medium text-gray-400 dark:text-gray-500">{subtitle}</span>
             )}
           </div>
         </div>
-        <div className={`p-3.5 rounded-xl ${color} shadow-lg group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/50 dark:ring-gray-800/50 shrink-0`}>
-          <Icon className="w-6 h-6" strokeWidth={2} />
+        <div className={`p-2.5 sm:p-3.5 rounded-xl ${color} shadow-lg group-hover:scale-110 transition-transform duration-300 ring-4 ring-white/50 dark:ring-gray-800/50 shrink-0`}>
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
         </div>
       </div>
     </motion.div>
