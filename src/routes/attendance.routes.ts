@@ -3074,6 +3074,17 @@ router.get('/courses',
       // Calculate attendance statistics for each course
       const coursesWithStats = await Promise.all(
         enrollments.map(async (enrollment) => {
+          // Get total past sessions for this course
+          const now = new Date();
+          const totalCourseSessions = await prisma.qRCode.count({
+            where: {
+              courseId: enrollment.courseId,
+              validTo: { lt: now },
+              isActive: true,
+              validFrom: { gte: enrollment.enrolledAt }
+            }
+          });
+
           const attendanceRecords = await prisma.attendanceRecord.findMany({
             where: {
               studentId: user.id,
@@ -3081,10 +3092,14 @@ router.get('/courses',
             }
           });
 
-          const totalSessions = attendanceRecords.length;
           const attendedSessions = attendanceRecords.filter(r => r.status === 'PRESENT').length;
           const lateSessions = attendanceRecords.filter(r => r.status === 'LATE').length;
-          const absentSessions = attendanceRecords.filter(r => r.status === 'ABSENT').length;
+          const excusedSessions = attendanceRecords.filter(r => r.status === 'EXCUSED').length;
+
+          // Calculate absent sessions (including implied absence)
+          const absentSessions = Math.max(0, totalCourseSessions - (attendedSessions + lateSessions + excusedSessions));
+
+          const totalSessions = totalCourseSessions;
 
           const attendancePercentage = totalSessions > 0
             ? Math.round(((attendedSessions + lateSessions) / totalSessions) * 100)
@@ -3188,9 +3203,40 @@ router.get('/stats',
 
       console.log('🔍 Fetching attendance stats for user ID:', targetUserId);
 
+      // Get enrolled courses to calculate total expected sessions
+      const enrollments = await prisma.courseEnrollment.findMany({
+        where: {
+          studentId: targetUserId,
+          status: 'ACTIVE'
+        },
+        select: { courseId: true, enrolledAt: true }
+      });
+
+      const enrolledCourseIds = enrollments.map(e => e.courseId);
+      const now = new Date();
+
+      // Calculate total expected sessions by iterating over enrollments
+      // This ensures we only count sessions that happened AFTER the student enrolled
+      let totalExpectedSessions = 0;
+      for (const enrollment of enrollments) {
+        const count = await prisma.qRCode.count({
+          where: {
+            courseId: enrollment.courseId,
+            validTo: { lt: now },
+            isActive: true,
+            validFrom: { gte: enrollment.enrolledAt }
+          }
+        });
+        totalExpectedSessions += count;
+      }
+
       // Get all attendance records for the user
+      // Filter by enrolled courses to match the expected sessions scope
       const attendanceRecords = await prisma.attendanceRecord.findMany({
-        where: { studentId: targetUserId },
+        where: {
+          studentId: targetUserId,
+          courseId: { in: enrolledCourseIds }
+        },
         include: {
           course: {
             select: {
@@ -3202,10 +3248,15 @@ router.get('/stats',
       });
 
       // Calculate overall statistics
-      const totalSessions = attendanceRecords.length;
       const attendedSessions = attendanceRecords.filter(r => r.status === 'PRESENT').length;
       const lateSessions = attendanceRecords.filter(r => r.status === 'LATE').length;
-      const absentSessions = attendanceRecords.filter(r => r.status === 'ABSENT').length;
+      const excusedSessions = attendanceRecords.filter(r => r.status === 'EXCUSED').length;
+
+      // Missed classes = Total Expected - (Present + Late + Excused)
+      // This implicitly includes records with status 'ABSENT' and sessions with NO record
+      const missedClasses = Math.max(0, totalExpectedSessions - (attendedSessions + lateSessions + excusedSessions));
+
+      const totalSessions = totalExpectedSessions;
 
       const attendancePercentage = totalSessions > 0
         ? Math.round(((attendedSessions + lateSessions) / totalSessions) * 100)
@@ -3214,7 +3265,10 @@ router.get('/stats',
       // Get course-specific statistics
       const courseStats = await prisma.attendanceRecord.groupBy({
         by: ['courseId'],
-        where: { studentId: targetUserId },
+        where: {
+          studentId: targetUserId,
+          courseId: { in: enrolledCourseIds }
+        },
         _count: {
           id: true
         }
@@ -3227,10 +3281,10 @@ router.get('/stats',
         averageAttendance: attendancePercentage,
         lateCount: lateSessions,
         lateSessions: lateSessions,
-        absentCount: absentSessions,
-        absentSessions: absentSessions,
-        excusedCount: 0, // Not implemented yet
-        coursesCount: courseStats.length
+        absentCount: missedClasses,
+        absentSessions: missedClasses,
+        excusedCount: excusedSessions,
+        coursesCount: enrollments.length
       };
 
       console.log('📊 Calculated stats:', stats);
