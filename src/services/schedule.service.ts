@@ -248,8 +248,8 @@ export class ScheduleService {
 
       // Flatten the schedules
       const schedules: any[] = [];
-      enrollments.forEach(enrollment => {
-        enrollment.course.schedules.forEach(schedule => {
+      enrollments.forEach((enrollment: any) => {
+        enrollment.course.schedules.forEach((schedule: any) => {
           // Transform to flat structure with course and professor data
           schedules.push({
             id: schedule.id,
@@ -282,7 +282,27 @@ export class ScheduleService {
       });
     } else if (userRole === 'PROFESSOR' || userRole === 'ADMIN') {
       // Get schedules for courses the professor teaches
-      return await this.getAllSchedules(userId, undefined, undefined, true);
+      const schedules = await this.getAllSchedules(userId, undefined, undefined, true);
+
+      // Transform to match the expected format
+      return schedules.map(schedule => ({
+        id: schedule.id,
+        courseId: schedule.courseId,
+        dayOfWeek: schedule.dayOfWeek,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        room: schedule.room,
+        semester: schedule.semester,
+        isActive: schedule.isActive,
+        professorId: schedule.professorId,
+        courseName: schedule.course?.courseName,
+        courseCode: schedule.course?.courseCode,
+        professorFirstName: schedule.professor?.firstName,
+        professorLastName: schedule.professor?.lastName,
+        professorName: schedule.professor ? `${schedule.professor.firstName} ${schedule.professor.lastName}` : undefined,
+        createdAt: schedule.createdAt,
+        updatedAt: schedule.updatedAt
+      }));
     }
 
     return [];
@@ -604,16 +624,16 @@ export class ScheduleService {
     const stats = {
       totalSchedules: schedules.length,
       schedulesByDay: {
-        Sunday: schedules.filter(s => s.dayOfWeek === 0).length,
-        Monday: schedules.filter(s => s.dayOfWeek === 1).length,
-        Tuesday: schedules.filter(s => s.dayOfWeek === 2).length,
-        Wednesday: schedules.filter(s => s.dayOfWeek === 3).length,
-        Thursday: schedules.filter(s => s.dayOfWeek === 4).length,
-        Friday: schedules.filter(s => s.dayOfWeek === 5).length,
-        Saturday: schedules.filter(s => s.dayOfWeek === 6).length
+        Sunday: schedules.filter((s: any) => s.dayOfWeek === 0).length,
+        Monday: schedules.filter((s: any) => s.dayOfWeek === 1).length,
+        Tuesday: schedules.filter((s: any) => s.dayOfWeek === 2).length,
+        Wednesday: schedules.filter((s: any) => s.dayOfWeek === 3).length,
+        Thursday: schedules.filter((s: any) => s.dayOfWeek === 4).length,
+        Friday: schedules.filter((s: any) => s.dayOfWeek === 5).length,
+        Saturday: schedules.filter((s: any) => s.dayOfWeek === 6).length
       },
-      uniqueRooms: [...new Set(schedules.map(s => s.room).filter(Boolean))].length,
-      uniqueCourses: [...new Set(schedules.map(s => s.courseId))].length
+      uniqueRooms: [...new Set(schedules.map((s: any) => s.room).filter(Boolean))].length,
+      uniqueCourses: [...new Set(schedules.map((s: any) => s.courseId))].length
     };
 
     return stats;
@@ -640,7 +660,7 @@ export class ScheduleService {
       console.log(`[ScheduleService] Found ${enrollments.length} active enrollments`);
 
       // Get course IDs
-      const courseIds = enrollments.map(e => e.courseId);
+      const courseIds = enrollments.map((e: any) => e.courseId);
 
       if (courseIds.length === 0) {
         console.log('[ScheduleService] No enrolled courses found');
@@ -678,7 +698,7 @@ export class ScheduleService {
       console.log(`[ScheduleService] Found ${schedules.length} schedules for today`);
 
       // Transform to expected format
-      return schedules.map(schedule => ({
+      return schedules.map((schedule: any) => ({
         id: String(schedule.id),
         courseName: schedule.course.courseName,
         courseCode: schedule.course.courseCode,
@@ -723,7 +743,7 @@ export class ScheduleService {
       console.log(`[ScheduleService] Found ${schedules.length} teaching schedules for today`);
 
       // Transform to expected format
-      return schedules.map(schedule => ({
+      return schedules.map((schedule: any) => ({
         id: String(schedule.id),
         courseName: schedule.course.courseName,
         courseCode: schedule.course.courseCode,

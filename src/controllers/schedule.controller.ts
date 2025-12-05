@@ -82,90 +82,15 @@ export class ScheduleController {
   static async getUserSchedule(req: Request, res: Response): Promise<any> {
     try {
       const userId = parseInt((req as any).user.id);
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      });
+      const userRole = (req as any).user.role;
 
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
+      console.log(`[ScheduleController] Getting schedule for user ${userId} (${userRole})`);
 
-      const enrollments = await prisma.courseEnrollment.findMany({
-        where: {
-          studentId: userId,
-          status: 'ACTIVE'
-        },
-        include: {
-          course: true
-        }
-      });
-
-      console.log(`[DEBUG] User ${userId} enrollments:`, enrollments.length);
-
-      const courseIds = enrollments.map((e: any) => e.courseId);
-
-      if (courseIds.length === 0) {
-        console.log(`[DEBUG] No active enrollments for user ${userId}`);
-        return res.json({
-          success: true,
-          data: []
-        });
-      }
-
-      const allSchedules = await prisma.schedule.findMany({
-        where: {
-          courseId: { in: courseIds },
-          isActive: true
-        },
-        include: {
-          course: {
-            select: {
-              id: true,
-              courseCode: true,
-              courseName: true,
-              credits: true
-            }
-          },
-          professor: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              universityId: true,
-              name: true
-            }
-          }
-        },
-        orderBy: [
-          { dayOfWeek: 'asc' },
-          { startTime: 'asc' }
-        ]
-      });
-
-      console.log(`[DEBUG] Found ${allSchedules.length} schedules for user ${userId}`);
-
-      const formattedSchedules = allSchedules.map((schedule: any) => ({
-        id: schedule.id,
-        courseId: schedule.courseId,
-        courseCode: schedule.course.courseCode,
-        courseName: schedule.course.courseName,
-        dayOfWeek: schedule.dayOfWeek,
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        room: schedule.room || 'TBA',
-        professorId: schedule.professorId,
-        professorFirstName: schedule.professor.firstName,
-        professorLastName: schedule.professor.lastName,
-        professorName: schedule.professor.name,
-        type: 'Lecture' // Default type
-      }));
+      const schedules = await ScheduleService.getUserSchedule(userId, userRole);
 
       res.json({
         success: true,
-        data: formattedSchedules
+        data: schedules
       });
     } catch (error: any) {
       console.error('[SCHEDULE] Error fetching user schedule:', error);
