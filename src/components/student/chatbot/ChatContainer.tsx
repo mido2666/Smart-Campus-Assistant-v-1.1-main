@@ -11,7 +11,7 @@ interface ChatContainerProps {
 }
 
 export default function ChatContainer({ className = '' }: ChatContainerProps) {
-  const { messages, isLoading, sendMessage, clearChat, exportChat } = useChat();
+  const { messages, isLoading, sendMessage, clearChat, endSession, exportChat } = useChat();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
           containerRef.current.scrollTop = 0;
         }
       }, 150);
-      
+
       return () => clearTimeout(timer);
     }
   }, [messages.length, isInitialLoad]);
@@ -56,12 +56,16 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 50);
     }
-    
+
     previousMessageCount.current = messages.length;
   }, [messages, isLoading, isInitialLoad]);
 
   const handleClearConfirm = () => {
-    clearChat();
+    if (endSession) {
+      endSession();
+    } else {
+      clearChat();
+    }
     setShowClearConfirm(false);
   };
 
@@ -110,23 +114,24 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
           >
             <Download className="w-4 h-4" aria-hidden="true" />
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowClearConfirm(true)}
             disabled={messages.length === 0}
-            className="p-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            aria-label="Clear chat history"
-            title="Clear chat"
+            className="flex items-center gap-2 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            aria-label="End Session"
+            title="End Session"
           >
             <Trash2 className="w-4 h-4" aria-hidden="true" />
+            <span className="text-sm font-medium hidden sm:inline">End Session</span>
           </motion.button>
         </div>
       </motion.div>
 
       {/* Messages Area */}
-      <div 
+      <div
         ref={containerRef}
         className="flex-1 overflow-y-auto p-4 space-y-1 bg-gray-50 dark:bg-gray-900/50 scroll-auto"
         role="log"
@@ -150,15 +155,15 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
             >
               <MessageSquare className="w-10 h-10 text-blue-600 dark:text-blue-400" />
             </motion.div>
-            
+
             <h3 className="text-xl font-bold text-gray-900 dark:text-textDark mb-2">
               Welcome to Smart Campus Assistant! 👋
             </h3>
             <p className="text-gray-600 dark:text-mutedDark mb-6 max-w-md">
-              I'm here to help you with your university life. Ask me about your schedule, 
+              I'm here to help you with your university life. Ask me about your schedule,
               campus locations, assignments, or anything else you need!
             </p>
-            
+
             <div className="flex flex-wrap gap-2 justify-center">
               {[
                 "Hello",
@@ -188,7 +193,7 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
-            
+
             {/* Typing Indicator */}
             {isLoading && (
               <motion.div
@@ -209,14 +214,14 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
             )}
           </AnimatePresence>
         )}
-        
+
         {/* Scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Chat Input */}
-      <ChatInput 
-        onSendMessage={sendMessage} 
+      <ChatInput
+        onSendMessage={sendMessage}
         isLoading={isLoading}
         placeholder="Ask me anything about your university life..."
       />
@@ -251,12 +256,12 @@ export default function ChatContainer({ className = '' }: ChatContainerProps) {
                   </p>
                 </div>
               </div>
-              
+
               <p className="text-gray-700 dark:text-textDark mb-6">
-                Are you sure you want to clear all chat messages? This will permanently 
+                Are you sure you want to clear all chat messages? This will permanently
                 delete your conversation history.
               </p>
-              
+
               <div className="flex gap-3">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
