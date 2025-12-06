@@ -418,12 +418,12 @@ export default function StudentDashboard() {
         {/* Stats Grid - 2 Columns on Mobile, 4 on Desktop */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           <StatCardStudent
-            title="GPA"
-            value={stats?.gpa?.toFixed(2) || '3.85'}
+            title="Predicted GPA"
+            value={stats?.attendancePercentage ? ((stats.attendancePercentage / 100) * 4).toFixed(2) : '0.00'}
             icon={GraduationCap}
             color="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
             delay={0.1}
-            subtitle="Excellent"
+            subtitle="Based on Attendance"
           />
           <StatCardStudent
             title="Credits"
