@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import { PrismaClient, UserRole, FraudAlertType } from '@prisma/client';
+import { PrismaClient, UserRole, FraudAlertType, EnrollmentStatus } from '@prisma/client';
 import { NotificationType, NotificationCategory } from '../types/notification.types.js';
 import prisma from '../../config/database.js';
 import { NotificationService } from '../services/notification.service.js';
@@ -593,7 +593,16 @@ router.get('/sessions',
               select: {
                 id: true,
                 courseName: true,
-                courseCode: true
+                courseCode: true,
+                _count: {
+                  select: {
+                    enrollments: {
+                      where: {
+                        status: EnrollmentStatus.ACTIVE
+                      }
+                    }
+                  }
+                }
               }
             },
             _count: {
@@ -655,9 +664,9 @@ router.get('/sessions',
             riskThreshold: 70
           },
           status,
-          totalStudents: 0,
+          totalStudents: session.course._count.enrollments,
           presentStudents: session._count.attendanceRecords,
-          absentStudents: 0,
+          absentStudents: session.course._count.enrollments - session._count.attendanceRecords,
           lateStudents: 0,
           fraudAlerts: 0,
           qrCode: session.sessionId,
