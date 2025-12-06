@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Bot, Plus, MessageSquare, Copy, RotateCcw, Trash, Check, Globe, Send, Sparkles, MoreVertical, Edit2, X } from 'lucide-react';
+import { Trash2, Bot, Plus, MessageSquare, Copy, RotateCcw, Trash, Check, Globe, Send, Sparkles, MoreVertical, Edit2, X, Menu } from 'lucide-react';
 import DashboardLayout from '../components/common/DashboardLayout';
 import ChatContainer from '../components/student/ai-assistant/ChatContainer';
 import ChatInput from '../components/student/ai-assistant/ChatInput';
@@ -32,7 +32,7 @@ export default function StudentAIAssistant() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>('');
   const [language, setLanguage] = useState<'auto' | 'en' | 'ar'>('auto');
-  const [showSessionsPanel, setShowSessionsPanel] = useState(false);
+  const [showSessionsPanel, setShowSessionsPanel] = useState(true);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
@@ -368,6 +368,13 @@ export default function StudentAIAssistant() {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowSessionsPanel(!showSessionsPanel)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300 transition-colors"
+                title={showSessionsPanel ? "Hide Sidebar" : "Show Sidebar"}
+              >
+                <Menu className="w-5 h-5" />
+              </button>
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
@@ -381,15 +388,7 @@ export default function StudentAIAssistant() {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowSessionsPanel(!showSessionsPanel)}
-                className={`p-2.5 rounded-xl transition-all lg:hidden ${showSessionsPanel
-                  ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-                  : 'bg-white/80 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 backdrop-blur-xl border border-white/20 dark:border-gray-700/50'
-                  }`}
-              >
-                {showSessionsPanel ? <X className="w-5 h-5" /> : <MoreVertical className="w-5 h-5" />}
-              </button>
+              {/* Right side actions if any */}
             </div>
           </div>
 
@@ -414,12 +413,12 @@ export default function StudentAIAssistant() {
                 animate={{
                   opacity: 1,
                   x: 0,
-                  width: showSessionsPanel || window.innerWidth >= 1024 ? 320 : 0,
+                  width: showSessionsPanel ? 320 : 0,
                   position: window.innerWidth < 1024 ? 'absolute' : 'relative',
                   zIndex: 30
                 }}
                 exit={{ opacity: 0, x: -20, width: 0 }}
-                className={`${window.innerWidth < 1024 && !showSessionsPanel ? 'hidden' : 'flex'} flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden h-full`}
+                className={`${window.innerWidth < 1024 && !showSessionsPanel ? 'hidden' : 'flex'} flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-r-3xl lg:rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden h-full`}
               >
                 <div className="p-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between bg-white/50 dark:bg-gray-800/50">
                   <h3 className="font-bold text-gray-900 dark:text-white">Sessions</h3>
