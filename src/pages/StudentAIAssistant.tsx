@@ -364,282 +364,292 @@ export default function StudentAIAssistant() {
         userName={user ? `${user.firstName} ${user.lastName}` : "Student"}
         userType="student"
       >
-        <div className="flex flex-col h-[calc(100vh-8rem)]">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setShowSessionsPanel(!showSessionsPanel)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300 transition-colors"
-                title={showSessionsPanel ? "Hide Sidebar" : "Show Sidebar"}
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">AI Assistant</h1>
-                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Online • {activeSession?.name || 'New Chat'}
-                </p>
-              </div>
-            </div>
+        <div className="flex h-[calc(100vh-6rem)] lg:h-[calc(100vh-6rem)] gap-6 max-w-7xl mx-auto pb-0 lg:pb-6 relative">
 
-            <div className="flex items-center gap-2">
-              {/* Right side actions if any */}
-            </div>
-          </div>
+          {/* Sessions Sidebar */}
+          <AnimatePresence mode="wait">
+            {showSessionsPanel && (
+              <>
+                {/* Mobile Overlay */}
+                {window.innerWidth < 1024 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowSessionsPanel(false)}
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                  />
+                )}
 
-          <div className="flex-1 flex gap-6 min-h-0 relative">
-            {/* Mobile Overlay */}
-            <AnimatePresence>
-              {showSessionsPanel && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setShowSessionsPanel(false)}
-                  className="absolute inset-0 bg-black/20 backdrop-blur-sm z-20 lg:hidden rounded-3xl"
-                />
-              )}
-            </AnimatePresence>
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 320, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className={`flex-shrink-0 flex flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-r-2xl lg:rounded-2xl shadow-xl lg:shadow-sm border-r lg:border border-white/20 dark:border-gray-700/50 overflow-hidden ${window.innerWidth < 1024 ? 'fixed inset-y-0 left-0 z-50' : ''}`}
+                >
+                  <div className="w-80 h-full flex flex-col">
+                    <div className="p-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between bg-white/50 dark:bg-gray-800/50">
+                      <h3 className="font-bold text-gray-900 dark:text-white">Sessions</h3>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            newSession();
+                            if (window.innerWidth < 1024) setShowSessionsPanel(false);
+                          }}
+                          className="p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg transition-colors text-indigo-600 dark:text-indigo-400"
+                          title="New Chat"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setShowSessionsPanel(false)}
+                          className="p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-300"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
 
-            {/* Sessions Sidebar */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                initial={{ opacity: 0, x: -20, width: 0 }}
-                animate={{
-                  opacity: 1,
-                  x: 0,
-                  width: showSessionsPanel ? 320 : 0,
-                  position: window.innerWidth < 1024 ? 'absolute' : 'relative',
-                  zIndex: 30
-                }}
-                exit={{ opacity: 0, x: -20, width: 0 }}
-                className={`${window.innerWidth < 1024 && !showSessionsPanel ? 'hidden' : 'flex'} flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-r-3xl lg:rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden h-full`}
-              >
-                <div className="p-4 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between bg-white/50 dark:bg-gray-800/50">
-                  <h3 className="font-bold text-gray-900 dark:text-white">Sessions</h3>
-                  <button
-                    onClick={() => {
-                      newSession();
-                      if (window.innerWidth < 1024) setShowSessionsPanel(false);
-                    }}
-                    className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {sessions.map(session => (
-                    <div
-                      key={session.id}
-                      onClick={() => {
-                        setActiveSessionId(session.id);
-                        if (window.innerWidth < 1024) setShowSessionsPanel(false);
-                      }}
-                      className={`group p-3 rounded-xl cursor-pointer transition-all border ${activeSessionId === session.id
-                        ? 'bg-indigo-50/80 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-900/50 shadow-sm'
-                        : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                        }`}
-                    >
-                      {editingSessionId === session.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={editingName}
-                            onChange={e => setEditingName(e.target.value)}
-                            onBlur={() => renameSession(session.id, editingName)}
-                            onKeyDown={e => e.key === 'Enter' && renameSession(session.id, editingName)}
-                            className="flex-1 bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            autoFocus
-                            onClick={e => e.stopPropagation()}
-                          />
-                          <button onClick={() => renameSession(session.id, editingName)} className="p-1 text-emerald-600"><Check className="w-4 h-4" /></button>
-                        </div>
-                      ) : (
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className={`font-medium text-sm truncate ${activeSessionId === session.id ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-gray-300'
-                              }`}>
-                              {session.name}
-                            </h4>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {new Date(session.updatedAt).toLocaleDateString()} • {session.messageCount} msgs
-                            </p>
-                          </div>
-                          {activeSessionId === session.id && (
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingSessionId(session.id);
-                                  setEditingName(session.name);
-                                }}
-                                className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 transition-colors"
-                              >
-                                <Edit2 className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteSession(session.id);
-                                }}
-                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 transition-colors"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                      {sessions.map(session => (
+                        <div
+                          key={session.id}
+                          onClick={() => {
+                            setActiveSessionId(session.id);
+                            if (window.innerWidth < 1024) setShowSessionsPanel(false);
+                          }}
+                          className={`group p-3 rounded-xl cursor-pointer transition-all border ${activeSessionId === session.id
+                            ? 'bg-indigo-50/80 dark:bg-indigo-900/30 border-indigo-100 dark:border-indigo-900/50 shadow-sm'
+                            : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                            }`}
+                        >
+                          {editingSessionId === session.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={editingName}
+                                onChange={e => setEditingName(e.target.value)}
+                                onBlur={() => renameSession(session.id, editingName)}
+                                onKeyDown={e => e.key === 'Enter' && renameSession(session.id, editingName)}
+                                className="flex-1 bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                autoFocus
+                                onClick={e => e.stopPropagation()}
+                              />
+                              <button onClick={() => renameSession(session.id, editingName)} className="p-1 text-emerald-600"><Check className="w-4 h-4" /></button>
+                            </div>
+                          ) : (
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`font-medium text-sm truncate ${activeSessionId === session.id ? 'text-indigo-900 dark:text-indigo-100' : 'text-gray-700 dark:text-gray-300'
+                                  }`}>
+                                  {session.name}
+                                </h4>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {new Date(session.updatedAt).toLocaleDateString()} • {session.messageCount} msgs
+                                </p>
+                              </div>
+                              {activeSessionId === session.id && (
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingSessionId(session.id);
+                                      setEditingName(session.name);
+                                    }}
+                                    className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 transition-colors"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      deleteSession(session.id);
+                                    }}
+                                    className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 transition-colors"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/50 overflow-hidden relative">
-              {/* Chat Messages */}
-              <div
-                ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth"
-              >
-                {messages.length === 0 && !isLoading ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto px-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center mb-6 animate-float shadow-inner">
-                      <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                      How can I help you today?
-                    </h2>
-                    <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md">
-                      I can help you with your schedule, assignments, attendance tracking, and general academic questions.
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
-                      {[
-                        { icon: "📅", text: "What's my schedule today?" },
-                        { icon: "📊", text: "Check my attendance" },
-                        { icon: "📝", text: "List upcoming exams" },
-                        { icon: "💡", text: "Study tips for finals" }
-                      ].map((prompt, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handlePromptSelect(prompt.text)}
-                          className="p-4 bg-white/50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-white/20 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800 rounded-2xl text-left transition-all group shadow-sm hover:shadow-md backdrop-blur-sm"
-                        >
-                          <span className="text-xl mb-2 block transform group-hover:scale-110 transition-transform duration-300">{prompt.icon}</span>
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                            {prompt.text}
-                          </span>
-                        </button>
                       ))}
                     </div>
                   </div>
-                ) : (
-                  <>
-                    {messages.map((message, index) => {
-                      const isAi = message.sender === 'ai';
-                      const isArabic = detectLanguage(message.text) === 'ar';
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
-                      return (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          key={message.id}
-                          className={`flex ${isAi ? 'justify-start' : 'justify-end'}`}
-                        >
-                          <div className={`flex gap-3 sm:gap-4 max-w-[90%] sm:max-w-[85%] ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-                            {isAi && (
-                              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md mt-1">
-                                <Bot className="w-4 h-4 text-white" />
-                              </div>
-                            )}
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl lg:rounded-2xl shadow-sm border-x lg:border border-white/20 dark:border-gray-700/50 overflow-hidden relative h-full">
 
-                            <div className={`group relative px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl shadow-sm ${isAi
-                              ? 'bg-white/60 dark:bg-gray-700/60 text-gray-800 dark:text-gray-200 rounded-tl-none border border-white/20 dark:border-gray-600/30 backdrop-blur-md'
-                              : 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-tr-none shadow-indigo-500/20'
-                              }`}>
-                              <div
-                                className={`whitespace-pre-wrap leading-relaxed text-sm sm:text-base ${isArabic ? 'text-right' : 'text-left'}`}
-                                dir={isArabic ? 'rtl' : 'ltr'}
-                              >
-                                {message.text}
-                              </div>
+            {/* Header */}
+            <div className="h-16 px-4 lg:px-6 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between bg-white/50 dark:bg-gray-800/50 backdrop-blur-md z-10">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setShowSessionsPanel(!showSessionsPanel)}
+                  className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg text-gray-600 dark:text-gray-300 transition-colors"
+                  title={showSessionsPanel ? "Hide Sidebar" : "Show Sidebar"}
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <Bot className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="font-bold text-gray-900 dark:text-white leading-tight">
+                    AI Assistant
+                  </h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Online • {activeSession?.name || 'New Chat'}
+                  </p>
+                </div>
+              </div>
 
-                              <div className={`flex items-center gap-2 mt-2 text-[10px] ${isAi ? 'text-gray-400' : 'text-indigo-200'} opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                <button onClick={() => copyMessage(message.text)} className="hover:text-white transition-colors"><Copy className="w-3 h-3" /></button>
-                                {isAi && <button onClick={() => deleteMessage(message.id)} className="hover:text-red-400 transition-colors"><Trash2 className="w-3 h-3" /></button>}
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+              <div className="flex items-center gap-2">
+                {/* Right side actions */}
+              </div>
+            </div>
 
-                    {isLoading && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex justify-start"
+            {/* Chat Messages */}
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth bg-gray-50/50 dark:bg-gray-900/50"
+            >
+              {messages.length === 0 && !isLoading ? (
+                <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto px-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-3xl flex items-center justify-center mb-6 animate-float shadow-inner">
+                    <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                    How can I help you today?
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-8 max-w-md">
+                    I can help you with your schedule, assignments, attendance tracking, and general academic questions.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+                    {[
+                      { icon: "📅", text: "What's my schedule today?" },
+                      { icon: "📊", text: "Check my attendance" },
+                      { icon: "📝", text: "List upcoming exams" },
+                      { icon: "💡", text: "Study tips for finals" }
+                    ].map((prompt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handlePromptSelect(prompt.text)}
+                        className="p-4 bg-white/50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-white/20 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-800 rounded-2xl text-left transition-all group shadow-sm hover:shadow-md backdrop-blur-sm"
                       >
-                        <div className="flex gap-4 max-w-[85%]">
-                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md mt-1">
-                            <Bot className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="bg-white/60 dark:bg-gray-700/60 px-6 py-4 rounded-2xl rounded-tl-none flex items-center gap-1 border border-white/20 dark:border-gray-600/30 backdrop-blur-md">
-                            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
-                            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+                        <span className="text-xl mb-2 block transform group-hover:scale-110 transition-transform duration-300">{prompt.icon}</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                          {prompt.text}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {messages.map((message, index) => {
+                    const isAi = message.sender === 'ai';
+                    const isArabic = detectLanguage(message.text) === 'ar';
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        key={message.id}
+                        className={`flex ${isAi ? 'justify-start' : 'justify-end'}`}
+                      >
+                        <div className={`flex gap-3 sm:gap-4 max-w-[90%] sm:max-w-[85%] ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
+                          {isAi && (
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md mt-1">
+                              <Bot className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+
+                          <div className={`group relative px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl shadow-sm ${isAi
+                            ? 'bg-white/60 dark:bg-gray-700/60 text-gray-800 dark:text-gray-200 rounded-tl-none border border-white/20 dark:border-gray-600/30 backdrop-blur-md'
+                            : 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-tr-none shadow-indigo-500/20'
+                            }`}>
+                            <div
+                              className={`whitespace-pre-wrap leading-relaxed text-sm sm:text-base ${isArabic ? 'text-right' : 'text-left'}`}
+                              dir={isArabic ? 'rtl' : 'ltr'}
+                            >
+                              {message.text}
+                            </div>
+
+                            <div className={`flex items-center gap-2 mt-2 text-[10px] ${isAi ? 'text-gray-400' : 'text-indigo-200'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                              <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              <button onClick={() => copyMessage(message.text)} className="hover:text-white transition-colors"><Copy className="w-3 h-3" /></button>
+                              {isAi && <button onClick={() => deleteMessage(message.id)} className="hover:text-red-400 transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                            </div>
                           </div>
                         </div>
                       </motion.div>
-                    )}
-                  </>
-                )}
-              </div>
+                    );
+                  })}
 
-              {/* Input Area */}
-              <div className="p-4 bg-white/80 dark:bg-gray-800/80 border-t border-white/20 dark:border-gray-700/50 backdrop-blur-xl sticky bottom-0 z-10">
-                <div className="max-w-4xl mx-auto relative">
-                  {messages.length > 0 && (
-                    <div className="absolute -top-12 left-0 right-0 flex justify-center gap-2 pointer-events-none">
-                      <div className="pointer-events-auto flex gap-2">
-                        <button
-                          onClick={handleClearChat}
-                          className="px-3 py-1.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-xs font-medium text-red-500 shadow-sm border border-red-100 dark:border-red-900/30 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" /> Clear
-                        </button>
-                        {messages[messages.length - 1]?.sender === 'ai' && (
-                          <button
-                            onClick={retryLast}
-                            className="px-3 py-1.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-xs font-medium text-gray-600 dark:text-gray-300 shadow-sm border border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
-                          >
-                            <RotateCcw className="w-3 h-3" /> Regenerate
-                          </button>
-                        )}
+                  {isLoading && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex justify-start"
+                    >
+                      <div className="flex gap-4 max-w-[85%]">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md mt-1">
+                          <Bot className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="bg-white/60 dark:bg-gray-700/60 px-6 py-4 rounded-2xl rounded-tl-none flex items-center gap-1 border border-white/20 dark:border-gray-600/30 backdrop-blur-md">
+                          <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
+                          <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
+                </>
+              )}
+            </div>
 
-                  <ChatInput
-                    onSendMessage={handleSendMessage}
-                    isLoading={isLoading}
-                    chromeless
-                  />
-
-                  <div className="text-center mt-2">
-                    <p className="text-[10px] text-gray-400">
-                      AI can make mistakes. Consider checking important information.
-                    </p>
+            {/* Input Area */}
+            <div className="p-4 bg-white/80 dark:bg-gray-800/80 border-t border-white/20 dark:border-gray-700/50 backdrop-blur-xl sticky bottom-0 z-10">
+              <div className="max-w-4xl mx-auto relative">
+                {messages.length > 0 && (
+                  <div className="absolute -top-12 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+                    <div className="pointer-events-auto flex gap-2">
+                      <button
+                        onClick={handleClearChat}
+                        className="px-3 py-1.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-xs font-medium text-red-500 shadow-sm border border-red-100 dark:border-red-900/30 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" /> Clear
+                      </button>
+                      {messages[messages.length - 1]?.sender === 'ai' && (
+                        <button
+                          onClick={retryLast}
+                          className="px-3 py-1.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md text-xs font-medium text-gray-600 dark:text-gray-300 shadow-sm border border-gray-200 dark:border-gray-700 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+                        >
+                          <RotateCcw className="w-3 h-3" /> Regenerate
+                        </button>
+                      )}
+                    </div>
                   </div>
+                )}
+
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                  chromeless
+                />
+
+                <div className="text-center mt-2">
+                  <p className="text-[10px] text-gray-400">
+                    AI can make mistakes. Consider checking important information.
+                  </p>
                 </div>
               </div>
             </div>
