@@ -787,6 +787,14 @@ export default function StudentAttendance() {
         }
       } catch (error: any) {
         console.error('Location verification failed:', error);
+
+        // Handle backend errors
+        if (error.response?.status === 409) {
+          // Already marked - treat as success for this step so user can proceed to see status
+          updateVerificationStep(1, 'COMPLETED');
+          return;
+        }
+
         // Show specific backend error if available
         const backendError = error.response?.data?.error || error.message || 'Unknown error';
         alert(`Location check error: ${backendError}`);
@@ -812,7 +820,8 @@ export default function StudentAttendance() {
               setTimeout(() => handleLocationVerification(), 500);
             },
             (error) => {
-              alert(`GPS Error: ${error.message}`);
+              // Only alert if it's not a temporary timeout or permission issue that we handle elsewhere
+              console.warn(`GPS Error: ${error.message}`);
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
           );
@@ -851,8 +860,16 @@ export default function StudentAttendance() {
           setDeviceFingerprint(prev => prev ? { ...prev, isVerified: true } : null);
           updateVerificationStep(2, 'COMPLETED');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Device verification failed:', error);
+
+        if (error.response?.status === 409) {
+          // Already marked - treat as success
+          setDeviceFingerprint(prev => prev ? { ...prev, isVerified: true } : null);
+          updateVerificationStep(2, 'COMPLETED');
+          return;
+        }
+
         setDeviceFingerprint(prev => prev ? { ...prev, isVerified: true } : null);
         updateVerificationStep(2, 'COMPLETED');
       }
@@ -928,8 +945,34 @@ export default function StudentAttendance() {
       }
     } catch (error: any) {
       console.error('Failed to submit attendance:', error);
+
+      if (error.response?.status === 409) {
+        // Attendance already marked
+        alert("Attendance already marked for this session.");
+
+        // Mark as success anyway so UI updates
+        const attendanceRecord: AttendanceRecord = {
+          id: `att-${Date.now()}`, // temporary ID
+          sessionId: scanResult,
+          courseName: currentSession.courseName,
+          timestamp: new Date(),
+          location: locationData,
+          device: deviceFingerprint,
+          photo: photoData || undefined,
+          securityScore: 100,
+          fraudWarnings: [],
+          status: 'SUCCESS'
+        };
+
+        // Refetch history to show the actual existing record
+        await refetchHistory();
+        updateVerificationStep(4, 'COMPLETED'); // Provide visual completion
+        return;
+      }
+
       updateVerificationStep(4, 'FAILED');
-      alert(error.message || 'Failed to mark attendance. Please try again.');
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to mark attendance';
+      alert(`Error: ${errorMessage}. Please try again.`);
     }
   };
 

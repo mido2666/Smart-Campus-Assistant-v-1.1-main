@@ -740,7 +740,7 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
       });
     }
 
-    // Check if already marked attendance
+    // Check for existing records
     const existingRecord = await prisma.attendanceRecord.findFirst({
       where: {
         sessionId,
@@ -748,32 +748,8 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
       }
     });
 
-    if (existingRecord) {
-      return res.status(409).json({
-        success: false,
-        error: 'Attendance already marked'
-      });
-    }
-
-    // Location verification
-    if (session.securitySettings.requireLocation && location) {
-      const distance = calculateDistance(
-        location.latitude,
-        location.longitude,
-        session.location!.latitude,
-        session.location!.longitude
-      );
-
-      if (distance > session.location!.radius) {
-        return res.status(400).json({
-          success: false,
-          error: 'Location verification failed',
-          details: 'You are outside the allowed area'
-        });
-      }
-    }
-
     // Device verification
+    let deviceVerified = false;
     if (session.securitySettings.requireDeviceCheck && deviceFingerprint) {
       const device = await prisma.deviceFingerprint.findFirst({
         where: {
@@ -790,6 +766,27 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
           details: 'Device not registered'
         });
       }
+      deviceVerified = true;
+    }
+
+    // Location verification
+    let locationVerified = false;
+    if (session.securitySettings.requireLocation && location) {
+      const distance = calculateDistance(
+        location.latitude,
+        location.longitude,
+        session.location!.latitude,
+        session.location!.longitude
+      );
+
+      if (distance > session.location!.radius) {
+        return res.status(400).json({
+          success: false,
+          error: 'Location verification failed',
+          details: 'You are outside the allowed area'
+        });
+      }
+      locationVerified = true;
     }
 
     // Get registered devices for fraud calculation
@@ -814,26 +811,6 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
       sessionEndTime: session.endTime
     });
 
-    // Create attendance record
-    const attendanceRecord = await prisma.attendanceRecord.create({
-      data: {
-        id: uuidv4(),
-        sessionId,
-        studentId: req.user!.id,
-        timestamp: new Date(),
-        status: 'PRESENT',
-        location: location ? {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          accuracy: location.accuracy
-        } : undefined,
-        deviceFingerprint,
-        fraudScore,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    });
-
     // Create fraud alert if score is high
     if (fraudScore > 70) {
       await prisma.fraudAlert.create({
@@ -855,17 +832,69 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
       });
     }
 
+    let attendanceRecord;
+
+    if (existingRecord) {
+      // If already present or late, do not allow changes (return 409)
+      if (existingRecord.status === 'PRESENT' || existingRecord.status === 'LATE') {
+        return res.status(409).json({
+          success: false,
+          error: 'Attendance already marked'
+        });
+      }
+
+      // If absent or failed, allow update to PRESENT
+      attendanceRecord = await prisma.attendanceRecord.update({
+        where: { id: existingRecord.id },
+        data: {
+          status: 'PRESENT',
+          timestamp: new Date(),
+          markedAt: new Date(),
+          location: location ? {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy
+          } : undefined,
+          deviceFingerprint,
+          fraudScore,
+          updatedAt: new Date()
+        }
+      });
+    } else {
+      // Create new record
+      attendanceRecord = await prisma.attendanceRecord.create({
+        data: {
+          id: uuidv4(),
+          sessionId,
+          studentId: req.user!.id,
+          timestamp: new Date(),
+          markedAt: new Date(), // schema uses markedAt for official time
+          status: 'PRESENT',
+          location: location ? {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy
+          } : undefined,
+          deviceFingerprint,
+          fraudScore,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      });
+    }
+
     // Log activity
-    await logActivity(req.user!.id, 'ATTENDANCE_MARKED', {
+    await logActivity(req.user!.id, existingRecord ? 'ATTENDANCE_UPDATED' : 'ATTENDANCE_MARKED', {
       sessionId,
       fraudScore,
-      location
+      location,
+      previousStatus: existingRecord?.status
     });
 
     res.json({
       success: true,
       data: attendanceRecord,
-      message: 'Attendance marked successfully'
+      message: existingRecord ? 'Attendance updated successfully' : 'Attendance marked successfully'
     });
   } catch (error) {
     console.error('Scan QR code error:', error);
