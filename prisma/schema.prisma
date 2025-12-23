@@ -94,6 +94,7 @@ model Course {
   schedules         Schedule[]
   materials         CourseMaterial[]
   quizzes           Quiz[]
+  attendanceSessions AttendanceSession[]
 
   @@map("courses")
 }
@@ -156,8 +157,10 @@ model AttendanceRecord {
   id                Int              @id @default(autoincrement())
   studentId         Int
   courseId          Int
-  qrCodeId          Int
+  qrCodeId          Int?
+  sessionId         String?
   status            AttendanceStatus @default(PRESENT)
+  notes             String?
   markedAt          DateTime         @default(now())
   location          Json?
   deviceFingerprint String?
@@ -167,15 +170,16 @@ model AttendanceRecord {
   attemptId         Int?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
-  qrCode            QRCode           @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  qrCode            QRCode?          @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  session           AttendanceSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   course            Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   student           User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([studentId, qrCodeId])
   @@index([markedAt])
   @@index([studentId])
   @@index([courseId])
   @@index([qrCodeId])
+  @@index([sessionId])
   @@index([status])
   @@index([studentId, courseId])
   @@map("attendance_records")
@@ -325,7 +329,8 @@ model AttendanceAttempt {
 model FraudAlert {
   id          Int             @id @default(autoincrement())
   studentId   Int
-  qrCodeId    Int
+  qrCodeId    Int?
+  sessionId   String?
   alertType   FraudAlertType
   severity    AlertSeverity
   description String
@@ -335,10 +340,12 @@ model FraudAlert {
   resolvedBy  Int?
   createdAt   DateTime        @default(now())
   student     User            @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  qrCode      QRCode          @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  qrCode      QRCode?         @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  session     AttendanceSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([qrCodeId])
+  @@index([sessionId])
   @@index([isResolved])
   @@index([severity])
   @@index([alertType])
@@ -445,6 +452,7 @@ enum FraudAlertType {
   MULTIPLE_DEVICES
   SUSPICIOUS_PATTERN
   QR_SHARING
+  FRAUD_DETECTED
 }
 
 enum AlertSeverity {
@@ -554,9 +562,21 @@ model AttendanceSession {
   updatedAt        DateTime @updatedAt
 
   course           Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
+  attendanceRecords AttendanceRecord[]
+  fraudAlerts       FraudAlert[]
+
   @@index([courseId])
   @@index([professorId])
   @@index([status])
   @@map("attendance_sessions")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  details   Json?
+  timestamp DateTime @default(now())
+
+  @@map("activity_logs")
 }

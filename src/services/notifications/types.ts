@@ -484,3 +484,53 @@ export interface NotificationAnalyticsConfig {
     responseTime: number;
   };
 }
+
+export interface NotificationConfig {
+  retry: {
+    maxAttempts: number;
+    backoffStrategy: 'LINEAR' | 'EXPONENTIAL' | 'FIXED';
+    initialDelay: number;
+    maxDelay: number;
+    retryableErrors: string[];
+  };
+  rateLimit: {
+    enabled: boolean;
+    maxPerMinute: number;
+    maxPerHour: number;
+    maxPerDay: number;
+    windowSize: number;
+  };
+  smtp: {
+    host: string;
+    port: number;
+    secure: boolean;
+    auth: {
+      user: string;
+      pass: string;
+    };
+    from: string;
+    replyTo?: string;
+  };
+  push: {
+    vapid: {
+      subject: string;
+      publicKey: string;
+      privateKey: string;
+    };
+    ttl: number;
+    topic?: string;
+    icon?: string;
+    badge?: string;
+    image?: string;
+  };
+  analytics: {
+    enabled: boolean;
+    retentionDays: number;
+    metricsInterval: number;
+    alertThresholds: {
+      deliveryRate: number;
+      failureRate: number;
+      responseTime: number;
+    };
+  };
+}

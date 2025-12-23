@@ -1,10 +1,21 @@
 // Notification Services Export
-export { AttendanceNotificationsService } from './attendance-notifications.service';
-export { EmailNotificationsService } from './email-notifications.service';
-export { PushNotificationsService } from './push-notifications.service';
-export { NotificationTemplatesService } from './notification-templates.service';
+import { AttendanceNotificationsService } from './attendance-notifications.service';
+import { EmailNotificationsService } from './email-notifications.service';
+import { PushNotificationsService } from './push-notifications.service';
+import { NotificationTemplatesService } from './notification-templates.service';
+import {
+  NotificationUser,
+  NotificationType,
+  NotificationChannel,
+  NotificationDelivery,
+  AttendanceNotificationData,
+  FraudAlertNotificationData,
+  EmergencyNotificationData,
+  NotificationConfig,
+  NotificationStatus
+} from './types';
 
-// Types Export
+export { AttendanceNotificationsService, EmailNotificationsService, PushNotificationsService, NotificationTemplatesService };
 export * from './types';
 
 // Notification Service Factory
@@ -112,7 +123,7 @@ export class NotificationManager {
     try {
       // Get template for notification type
       const template = await this.templateService.getTemplate(`${type.toLowerCase()}-${user.language}`);
-      
+
       // Render template
       const rendered = await this.templateService.renderTemplate(template.id, data);
 
@@ -296,74 +307,6 @@ export const defaultNotificationConfig: NotificationConfig = {
   }
 };
 
-// Notification Configuration Interface
-export interface NotificationConfig {
-  retry: {
-    maxAttempts: number;
-    backoffStrategy: 'LINEAR' | 'EXPONENTIAL' | 'FIXED';
-    initialDelay: number;
-    maxDelay: number;
-    retryableErrors: string[];
-  };
-  rateLimit: {
-    enabled: boolean;
-    maxPerMinute: number;
-    maxPerHour: number;
-    maxPerDay: number;
-    windowSize: number;
-  };
-  smtp: {
-    host: string;
-    port: number;
-    secure: boolean;
-    auth: {
-      user: string;
-      pass: string;
-    };
-    from: string;
-    replyTo?: string;
-  };
-  push: {
-    vapid: {
-      subject: string;
-      publicKey: string;
-      privateKey: string;
-    };
-    ttl: number;
-    topic?: string;
-    icon?: string;
-    badge?: string;
-    image?: string;
-  };
-  analytics: {
-    enabled: boolean;
-    retentionDays: number;
-    metricsInterval: number;
-    alertThresholds: {
-      deliveryRate: number;
-      failureRate: number;
-      responseTime: number;
-    };
-  };
-}
+// Re-export types for convenience, already exported via * from ./types
+// Removing duplicate definitions to avoid conflicts
 
-// Notification Channel Type
-export type NotificationChannel = 'EMAIL' | 'PUSH' | 'SMS' | 'IN_APP' | 'WEBHOOK';
-
-// Re-export types for convenience
-export type {
-  NotificationUser,
-  NotificationMessage,
-  NotificationDelivery,
-  NotificationTemplate,
-  NotificationType,
-  NotificationStatus,
-  NotificationPriority,
-  AttendanceNotificationData,
-  FraudAlertNotificationData,
-  LocationVerificationNotificationData,
-  SessionStatusNotificationData,
-  EmergencyNotificationData,
-  SecurityWarningNotificationData,
-  ReportNotificationData
-} from './types';

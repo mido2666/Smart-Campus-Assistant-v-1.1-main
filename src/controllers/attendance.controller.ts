@@ -1,12 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
-import { createHash } from 'crypto';
-import { promisify } from 'util';
+import { PrismaClient } from '@prisma/client';
+import sharp from 'sharp';
 
 // Types
 interface AuthenticatedRequest extends Request {
@@ -16,90 +12,6 @@ interface AuthenticatedRequest extends Request {
     role: string;
     permissions: string[];
   };
-}
-
-interface SessionData {
-  id: string;
-  courseId: number;
-  professorId: string;
-  title: string;
-  description?: string;
-  startTime: Date;
-  endTime: Date;
-  location?: {
-    latitude: number;
-    longitude: number;
-    radius: number;
-    name: string;
-  };
-  securitySettings: {
-    requireLocation: boolean;
-    requirePhoto: boolean;
-    requireDeviceCheck: boolean;
-    enableFraudDetection: boolean;
-    maxAttempts: number;
-    gracePeriod: number;
-  };
-  status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  qrCode?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface AttendanceRecord {
-  id: string;
-  sessionId: string;
-  studentId: string;
-  timestamp: Date;
-  status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
-  location?: {
-    latitude: number;
-    longitude: number;
-    accuracy: number;
-  };
-  deviceFingerprint?: string;
-  photoUrl?: string;
-  fraudScore?: number;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface SecurityMetrics {
-  totalSessions: number;
-  totalAttendance: number;
-  fraudAttempts: number;
-  securityScore: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  trends: {
-    attendance: number[];
-    fraud: number[];
-    security: number[];
-  };
-}
-
-interface FraudAlert {
-  id: string;
-  studentId: string;
-  sessionId: string;
-  alertType: 'LOCATION_FRAUD' | 'DEVICE_FRAUD' | 'PHOTO_FRAUD' | 'BEHAVIOR_FRAUD' | 'NETWORK_FRAUD';
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  description: string;
-  metadata: any;
-  isResolved: boolean;
-  resolvedAt?: Date;
-  resolvedBy?: string;
-  createdAt: Date;
-}
-
-interface DeviceFingerprint {
-  id: string;
-  studentId: string;
-  fingerprint: string;
-  deviceInfo: any;
-  isActive: boolean;
-  lastUsed: Date;
-  createdAt: Date;
 }
 
 // Initialize Prisma client
@@ -142,7 +54,7 @@ const scanQRCodeSchema = z.object({
 
 const markAttendanceSchema = z.object({
   sessionId: z.string().uuid(),
-  studentId: z.string().uuid(),
+  studentId: z.string().optional(), // Can be provided or inferred from token
   status: z.enum(['PRESENT', 'ABSENT', 'LATE', 'EXCUSED']),
   notes: z.string().optional()
 });
@@ -242,12 +154,13 @@ const sendNotification = async (userId: string, type: string, message: string, d
 export const createSession = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const sessionData = createSessionSchema.parse(req.body);
+    const professorId = parseInt(req.user!.id);
 
     // Verify course exists and user has access
     const course = await prisma.course.findFirst({
       where: {
         id: sessionData.courseId,
-        professorId: req.user!.id
+        professorId: professorId
       }
     });
 
@@ -280,15 +193,15 @@ export const createSession = async (req: AuthenticatedRequest, res: Response, ne
     const session = await prisma.$transaction(async (tx) => {
       const newSession = await tx.attendanceSession.create({
         data: {
-          id: uuidv4(),
+          // id field is auto-generated uuid
           courseId: sessionData.courseId,
-          professorId: req.user!.id,
+          professorId: professorId,
           title: sessionData.title,
           description: sessionData.description,
           startTime,
           endTime,
-          location: sessionData.location,
-          securitySettings: sessionData.securitySettings,
+          location: sessionData.location ? sessionData.location as any : undefined, // Cast to any to avoid Json type issues
+          securitySettings: sessionData.securitySettings ? sessionData.securitySettings as any : undefined,
           status: 'SCHEDULED',
           qrCode: generateQRCode(uuidv4()),
           createdAt: new Date(),
@@ -297,10 +210,13 @@ export const createSession = async (req: AuthenticatedRequest, res: Response, ne
       });
 
       // Log activity
-      await logActivity(req.user!.id, 'SESSION_CREATED', {
-        sessionId: newSession.id,
-        title: newSession.title,
-        courseId: newSession.courseId
+      await tx.activityLog.create({
+        data: {
+          userId: req.user!.id,
+          action: 'CREATE_SESSION',
+          details: { sessionId: newSession.id, courseId: newSession.courseId },
+          timestamp: new Date()
+        }
       });
 
       return newSession;
@@ -326,13 +242,14 @@ export const getSessions = async (req: AuthenticatedRequest, res: Response, next
     const where: any = {};
 
     // Filter by user role
+    const userId = parseInt(req.user!.id);
     if (req.user!.role === 'PROFESSOR') {
-      where.professorId = req.user!.id;
+      where.professorId = userId;
     } else if (req.user!.role === 'STUDENT') {
       where.course = {
-        students: {
+        enrollments: {
           some: {
-            studentId: req.user!.id
+            studentId: userId
           }
         }
       };
@@ -368,14 +285,8 @@ export const getSessions = async (req: AuthenticatedRequest, res: Response, next
         include: {
           course: {
             select: {
-              id: true,
-              name: true,
-              code: true
-            }
-          },
-          _count: {
-            select: {
-              attendanceRecords: true
+              courseName: true,
+              courseCode: true
             }
           }
         }
@@ -404,6 +315,7 @@ export const getSessions = async (req: AuthenticatedRequest, res: Response, next
 export const getSessionDetails = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const sessionId = req.params.id;
+    const userId = parseInt(req.user!.id);
 
     const session = await prisma.attendanceSession.findUnique({
       where: { id: sessionId },
@@ -411,8 +323,8 @@ export const getSessionDetails = async (req: AuthenticatedRequest, res: Response
         course: {
           select: {
             id: true,
-            name: true,
-            code: true,
+            courseName: true,
+            courseCode: true,
             description: true
           }
         },
@@ -427,7 +339,7 @@ export const getSessionDetails = async (req: AuthenticatedRequest, res: Response
               }
             }
           },
-          orderBy: { timestamp: 'desc' }
+          orderBy: { createdAt: 'desc' }
         },
         _count: {
           select: {
@@ -445,7 +357,7 @@ export const getSessionDetails = async (req: AuthenticatedRequest, res: Response
     }
 
     // Check access permissions
-    if (req.user!.role === 'PROFESSOR' && session.professorId !== req.user!.id) {
+    if (req.user!.role === 'PROFESSOR' && session.professorId !== userId) {
       return res.status(403).json({
         success: false,
         error: 'Access denied'
@@ -465,6 +377,7 @@ export const getSessionDetails = async (req: AuthenticatedRequest, res: Response
 export const updateSession = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const sessionId = req.params.id;
+    const userId = parseInt(req.user!.id);
 
     const session = await prisma.attendanceSession.findUnique({
       where: { id: sessionId }
@@ -477,48 +390,41 @@ export const updateSession = async (req: AuthenticatedRequest, res: Response, ne
       });
     }
 
-    if (session.professorId !== req.user!.id) {
+    if (session.professorId !== userId) {
       return res.status(403).json({
         success: false,
         error: 'Access denied'
       });
     }
 
-    if (session.status === 'ACTIVE') {
-      return res.status(400).json({
-        success: false,
-        error: 'Cannot update active session'
-      });
-    }
+    const sessionData = createSessionSchema.partial().parse(req.body);
 
     const updatedSession = await prisma.attendanceSession.update({
       where: { id: sessionId },
       data: {
-        ...req.body,
+        ...sessionData,
+        courseId: undefined, // Cannot update courseId
+        startTime: sessionData.startTime ? new Date(sessionData.startTime) : undefined,
+        endTime: sessionData.endTime ? new Date(sessionData.endTime) : undefined,
+        location: sessionData.location ? sessionData.location as any : undefined,
+        securitySettings: sessionData.securitySettings ? sessionData.securitySettings as any : undefined,
         updatedAt: new Date()
       }
     });
 
-    // Log activity
-    await logActivity(req.user!.id, 'SESSION_UPDATED', {
-      sessionId,
-      changes: req.body
-    });
-
     res.json({
       success: true,
-      data: updatedSession,
-      message: 'Session updated successfully'
+      data: updatedSession
     });
   } catch (error) {
     console.error('Update session error:', error);
     next(error);
   }
 };
-
 export const deleteSession = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const sessionId = req.params.id;
+    const userId = parseInt(req.user!.id);
 
     const session = await prisma.attendanceSession.findUnique({
       where: { id: sessionId }
@@ -531,7 +437,7 @@ export const deleteSession = async (req: AuthenticatedRequest, res: Response, ne
       });
     }
 
-    if (session.professorId !== req.user!.id) {
+    if (session.professorId !== userId) {
       return res.status(403).json({
         success: false,
         error: 'Access denied'
@@ -633,6 +539,7 @@ export const startSession = async (req: AuthenticatedRequest, res: Response, nex
 export const stopSession = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const sessionId = req.params.id;
+    const userId = parseInt(req.user!.id);
 
     const session = await prisma.attendanceSession.findUnique({
       where: { id: sessionId }
@@ -645,7 +552,7 @@ export const stopSession = async (req: AuthenticatedRequest, res: Response, next
       });
     }
 
-    if (session.professorId !== req.user!.id) {
+    if (session.professorId !== userId) {
       return res.status(403).json({
         success: false,
         error: 'Access denied'
@@ -689,16 +596,17 @@ export const stopSession = async (req: AuthenticatedRequest, res: Response, next
 export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { sessionId, qrCode, location, deviceFingerprint } = scanQRCodeSchema.parse(req.body);
+    const userId = parseInt(req.user!.id);
 
     // Verify session exists and is active
     const session = await prisma.attendanceSession.findUnique({
       where: { id: sessionId },
       include: {
         course: {
-          select: {
-            students: {
-              select: {
-                studentId: true
+          include: {
+            enrollments: {
+              where: {
+                studentId: userId
               }
             }
           }
@@ -729,9 +637,7 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
     }
 
     // Check if student is enrolled in course
-    const isEnrolled = session.course.students.some(
-      enrollment => enrollment.studentId === req.user!.id
-    );
+    const isEnrolled = session.course.enrollments.length > 0;
 
     if (!isEnrolled) {
       return res.status(403).json({
@@ -744,17 +650,17 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
     const existingRecord = await prisma.attendanceRecord.findFirst({
       where: {
         sessionId,
-        studentId: req.user!.id
+        studentId: userId
       }
     });
 
     // Device verification
     let deviceVerified = false;
-    if (session.securitySettings.requireDeviceCheck && deviceFingerprint) {
+    if (session.securitySettings && (session.securitySettings as any).requireDeviceCheck && deviceFingerprint) {
       const device = await prisma.deviceFingerprint.findFirst({
         where: {
           fingerprint: deviceFingerprint,
-          studentId: req.user!.id,
+          studentId: userId,
           isActive: true
         }
       });
@@ -771,15 +677,16 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
 
     // Location verification
     let locationVerified = false;
-    if (session.securitySettings.requireLocation && location) {
+    if (session.securitySettings && (session.securitySettings as any).requireLocation && location && session.location) {
+      const sessionLoc = session.location as any;
       const distance = calculateDistance(
         location.latitude,
         location.longitude,
-        session.location!.latitude,
-        session.location!.longitude
+        sessionLoc.latitude,
+        sessionLoc.longitude
       );
 
-      if (distance > session.location!.radius) {
+      if (distance > sessionLoc.radius) {
         return res.status(400).json({
           success: false,
           error: 'Location verification failed',
@@ -792,7 +699,7 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
     // Get registered devices for fraud calculation
     const registeredDevices = await prisma.deviceFingerprint.findMany({
       where: {
-        studentId: req.user!.id,
+        studentId: userId,
         isActive: true
       },
       select: {
@@ -804,7 +711,7 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
     // Calculate fraud score
     const fraudScore = calculateFraudScore({
       location,
-      sessionLocation: session.location,
+      sessionLocation: session.location as any,
       deviceFingerprint,
       registeredDevices: registeredDevices.map(d => d.fingerprint),
       sessionStartTime: session.startTime,
@@ -815,8 +722,7 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
     if (fraudScore > 70) {
       await prisma.fraudAlert.create({
         data: {
-          id: uuidv4(),
-          studentId: req.user!.id,
+          studentId: userId,
           sessionId,
           alertType: 'FRAUD_DETECTED',
           severity: 'HIGH',
@@ -826,8 +732,7 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
             location,
             deviceFingerprint
           },
-          isResolved: false,
-          createdAt: new Date()
+          isResolved: false
         }
       });
     }
@@ -848,7 +753,6 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
         where: { id: existingRecord.id },
         data: {
           status: 'PRESENT',
-          timestamp: new Date(),
           markedAt: new Date(),
           location: location ? {
             latitude: location.latitude,
@@ -864,11 +768,9 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
       // Create new record
       attendanceRecord = await prisma.attendanceRecord.create({
         data: {
-          id: uuidv4(),
           sessionId,
-          studentId: req.user!.id,
-          timestamp: new Date(),
-          markedAt: new Date(), // schema uses markedAt for official time
+          studentId: userId,
+          markedAt: new Date(),
           status: 'PRESENT',
           location: location ? {
             latitude: location.latitude,
@@ -904,13 +806,15 @@ export const scanQRCode = async (req: AuthenticatedRequest, res: Response, next:
 
 export const markAttendance = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const { sessionId, studentId, status, notes } = markAttendanceSchema.parse(req.body);
+    const { sessionId, studentId: studentIdStr, status, notes } = markAttendanceSchema.parse(req.body);
+    const userId = parseInt(req.user!.id);
+    const studentId = studentIdStr ? parseInt(studentIdStr) : userId;
 
     // Verify session exists and user has access
     const session = await prisma.attendanceSession.findFirst({
       where: {
         id: sessionId,
-        professorId: req.user!.id
+        professorId: userId
       }
     });
 
@@ -972,7 +876,6 @@ export const markAttendance = async (req: AuthenticatedRequest, res: Response, n
       // Create new record
       const attendanceRecord = await prisma.attendanceRecord.create({
         data: {
-          id: uuidv4(),
           sessionId,
           studentId,
           timestamp: new Date(),
@@ -1076,7 +979,7 @@ export const getAttendanceStatus = async (req: AuthenticatedRequest, res: Respon
 
 export const updateAttendanceRecord = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const recordId = req.params.id;
+    const recordId = parseInt(req.params.id);
 
     const record = await prisma.attendanceRecord.findUnique({
       where: { id: recordId },
@@ -1402,8 +1305,7 @@ export const reportFraud = async (req: AuthenticatedRequest, res: Response, next
 
     const fraudAlert = await prisma.fraudAlert.create({
       data: {
-        id: uuidv4(),
-        studentId: req.user!.id,
+        studentId: parseInt(req.user!.id),
         sessionId,
         alertType,
         severity,
@@ -1444,7 +1346,7 @@ export const reportFraud = async (req: AuthenticatedRequest, res: Response, next
 export const resolveFraudAlert = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { resolution } = req.body;
-    const alertId = req.params.id;
+    const alertId = parseInt(req.params.id);
 
     const alert = await prisma.fraudAlert.findUnique({
       where: { id: alertId }
@@ -1462,7 +1364,7 @@ export const resolveFraudAlert = async (req: AuthenticatedRequest, res: Response
       data: {
         isResolved: true,
         resolvedAt: new Date(),
-        resolvedBy: req.user!.id,
+        resolvedBy: parseInt(req.user!.id),
         metadata: {
           ...alert.metadata,
           resolution
