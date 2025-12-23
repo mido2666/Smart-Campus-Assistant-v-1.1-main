@@ -24,14 +24,15 @@
       "moduleResolution": "bundler"
     }
   },
-  "server/**/*",
-  "config/**/*"
-],
-"exclude": [
-  "node_modules",
-  "dist",
-  "config/frontend-env.ts",
-  "config/upstash.ts",
-  "config/database-example.ts"
-]
+  "include": [
+    "server/**/*",
+    "config/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "config/frontend-env.ts",
+    "config/upstash.ts",
+    "config/database-example.ts"
+  ]
 }
