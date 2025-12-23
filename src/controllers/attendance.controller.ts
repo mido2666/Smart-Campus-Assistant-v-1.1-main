@@ -1366,7 +1366,7 @@ export const resolveFraudAlert = async (req: AuthenticatedRequest, res: Response
         resolvedAt: new Date(),
         resolvedBy: parseInt(req.user!.id),
         metadata: {
-          ...alert.metadata,
+          ...(alert.metadata as any),
           resolution
         }
       }

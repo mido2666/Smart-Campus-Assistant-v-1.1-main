@@ -235,7 +235,7 @@ export class EmailNotificationsService implements EmailNotificationService {
       message.updatedAt = new Date();
 
       delivery.status = DeliveryStatus.FAILED;
-      delivery.failedAt = new Date();
+      delivery.bouncedAt = new Date();
       delivery.errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       this.logError('Email delivery failed', error, { messageId: message.id });
