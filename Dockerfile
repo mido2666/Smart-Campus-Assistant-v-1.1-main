@@ -24,8 +24,8 @@ RUN npx prisma generate
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl libc6-compat
+# Install OpenSSL for Prisma and Build Tools for Canvas
+RUN apk add --no-cache openssl libc6-compat python3 make g++ cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev
 
 # Copy package files
 COPY package*.json ./
