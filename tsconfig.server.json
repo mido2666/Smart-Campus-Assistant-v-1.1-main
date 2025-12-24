@@ -15,7 +15,8 @@
     "lib": [
       "ESNext",
       "DOM"
-    ]
+    ],
+    "skipLibCheck": true
   },
   "ts-node": {
     "esm": true,
