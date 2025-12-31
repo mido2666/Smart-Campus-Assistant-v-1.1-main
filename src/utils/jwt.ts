@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import envConfig from '../../config/environment.js';
 
 // JWT configuration interface
 export interface JWTConfig {
@@ -29,9 +30,9 @@ export interface JWTRefreshPayload {
  */
 export class JWTUtils {
   private static config: JWTConfig = {
-    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
+    secret: envConfig.jwt.secret,
+    expiresIn: envConfig.jwt.expiresIn,
+    refreshExpiresIn: envConfig.jwt.refreshExpiresIn
   };
 
   /**
