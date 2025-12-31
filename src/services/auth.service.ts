@@ -199,9 +199,7 @@ class AuthService {
   static async login(loginData: LoginRequest): Promise<AuthResponse> {
     console.log('[AuthService] Login process started for:', loginData.universityId);
 
-    // Check critical environment variables
-    if (!process.env.JWT_SECRET) console.error('[AuthService] CRITICAL: JWT_SECRET is missing!');
-    if (!process.env.DATABASE_URL) console.error('[AuthService] CRITICAL: DATABASE_URL is missing!');
+
 
     try {
       // Validate input
