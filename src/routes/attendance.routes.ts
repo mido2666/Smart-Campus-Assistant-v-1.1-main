@@ -11,6 +11,7 @@ import { NotificationType, NotificationCategory } from '../types/notification.ty
 import prisma from '../../config/database.js';
 import { NotificationService } from '../services/notification.service.js';
 import { SocketService } from '../services/socket.service.js';
+import JWTUtils from '../utils/jwt.js';
 
 // Helper to get SocketService instance (if available)
 // This will be set from server/index.ts
@@ -158,7 +159,7 @@ const authenticateToken = async (req: AuthenticatedRequest, res: Response, next:
       return res.status(401).json({ error: 'Access token required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = JWTUtils.verifyAccessToken(token);
     const user = await prisma.user.findUnique({
       where: { id: parseInt(decoded.userId) },
       select: {
