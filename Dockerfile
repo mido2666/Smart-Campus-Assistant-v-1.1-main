@@ -27,7 +27,8 @@ RUN npm ci --legacy-peer-deps --only=production && \
     npm cache clean --force
 
 # Generate Prisma Client
-RUN npx prisma generate
+# Generate Prisma Client (with dummy URL for build validation)
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 # ================================
 # Stage 2: Builder
@@ -55,7 +56,8 @@ COPY prisma ./prisma/
 RUN npm ci --legacy-peer-deps
 
 # Generate Prisma Client
-RUN npx prisma generate
+# Generate Prisma Client (with dummy URL for build validation)
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
 # Copy source code
 COPY . .
