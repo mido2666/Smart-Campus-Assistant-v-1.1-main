@@ -36,6 +36,13 @@ const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Netlify/Railway)
 const PORT = envConfig.server.port;
 
+console.log('🔍 [DEBUG] Current Environment Variables Keys:', Object.keys(process.env));
+if (process.env.DATABASE_URL) {
+  console.log('✅ [DEBUG] DATABASE_URL is present.');
+} else {
+  console.error('❌ [DEBUG] DATABASE_URL is MISSING!');
+}
+
 // Create HTTP server for Socket.io
 const httpServer = createServer(app);
 
